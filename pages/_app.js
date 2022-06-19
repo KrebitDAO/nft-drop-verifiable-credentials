@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { providers } from 'ethers';
 
+import { globalStyles } from '../global-styles';
 import { getRecord, webClient } from '../utils/identity';
 
 const App = ({ Component, pageProps }) => {
@@ -65,17 +66,20 @@ const App = ({ Component, pageProps }) => {
   };
 
   return (
-    <Component
-      {...pageProps}
-      auth={{
-        authStatus: status,
-        profile,
-        selfId,
-        connect,
-        connectCeramic,
-        getProfile,
-      }}
-    />
+    <>
+      {globalStyles}
+      <Component
+        {...pageProps}
+        auth={{
+          authStatus: status,
+          profile,
+          selfId,
+          connect,
+          connectCeramic,
+          getProfile,
+        }}
+      />
+    </>
   );
 };
 
