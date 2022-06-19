@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { providers } from 'ethers';
 
 import { globalStyles } from '../global-styles';
-import { getRecord, webClient } from '../utils/identity';
+import { getRecord, webClient } from '../utils';
 
 const App = ({ Component, pageProps }) => {
   const [status, setStatus] = useState('idle');
