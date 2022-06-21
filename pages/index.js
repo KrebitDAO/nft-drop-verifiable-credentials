@@ -1,9 +1,7 @@
 import { Home } from '../components';
 
-const IndexPage = props => {
-  const { auth } = props;
-
-  return <Home auth={auth} />;
+const IndexPage = () => {
+  return <Home />;
 };
 
 export default IndexPage;

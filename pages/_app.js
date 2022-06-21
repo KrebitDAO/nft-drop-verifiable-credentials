@@ -3,6 +3,8 @@ import { providers } from 'ethers';
 
 import { globalStyles } from '../global-styles';
 import { getRecord, webClient } from '../utils';
+import { KrebitContext } from '../context';
+import { NavBar } from '../components/navbar';
 
 const App = ({ Component, pageProps }) => {
   const [status, setStatus] = useState('idle');
@@ -68,9 +70,8 @@ const App = ({ Component, pageProps }) => {
   return (
     <>
       {globalStyles}
-      <Component
-        {...pageProps}
-        auth={{
+      <KrebitContext.Provider
+        value={{
           authStatus: status,
           profile,
           selfId,
@@ -78,7 +79,10 @@ const App = ({ Component, pageProps }) => {
           connectCeramic,
           getProfile,
         }}
-      />
+      >
+        <NavBar />
+        <Component {...pageProps} />
+      </KrebitContext.Provider>
     </>
   );
 };

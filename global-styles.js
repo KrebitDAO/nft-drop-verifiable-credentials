@@ -16,6 +16,7 @@ export const globalStyles = (
         scroll-behavior: smooth;
         margin: 0;
         padding: 0;
+        background-color: #1c1e21;
       }
 
       h1,

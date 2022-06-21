@@ -4,33 +4,35 @@ import styled from '@emotion/styled';
 export const Wrapper = styled.div`
   ${({ currentNFT }) => css`
     padding: 0 20px;
-    background-color: #1c1e21;
-    height: 100vh;
+    min-height: calc(100vh - 50px);
+    height: 100%;
     width: 100%;
 
-    @media (min-width: 768px) {
+    @media (min-width: 1024px) {
       padding: 0;
+      min-height: calc(100vh - 80px);
       display: grid;
-      justify-items: center;
-      align-items: center;
+      align-content: center;
+      justify-content: center;
     }
 
     .container {
-      height: 100%;
-      display: grid;
-      justify-items: center;
-      align-items: center;
-      max-width: 1366px;
-      grid-template-rows: 200px auto;
-
       @media (min-width: 1024px) {
-        grid-template-rows: initial;
+        max-width: 1366px;
+        display: grid;
+        align-items: center;
         grid-template-columns: auto 460px;
         grid-gap: 50px;
       }
     }
 
     .content {
+      padding: 50px 0;
+
+      @media (min-width: 1024px) {
+        padding: 0;
+      }
+
       .content-title {
         color: white;
 
@@ -54,8 +56,9 @@ export const Wrapper = styled.div`
     }
 
     .nfts {
+      width: 100%;
+
       .nfts-images {
-        width: 460px;
         height: 460px;
         background-image: url('${currentNFT}');
         background-position: center;
@@ -63,26 +66,11 @@ export const Wrapper = styled.div`
         background-size: cover;
         transition: all 0.2s ease;
         border-radius: 20px;
-      }
 
-      .nfts-actions {
-        margin-top: 25px;
+        @media (min-width: 1024px) {
+          width: 460px;
+        }
       }
     }
   `}
-`;
-
-export const Button = styled.button`
-  cursor: pointer;
-  display: block;
-  margin: 0 auto;
-  font-weight: 600;
-  width: 168px;
-  height: 46px;
-  background-image: linear-gradient(to left, #f213a4 0, #418dff 101.52%);
-  color: white;
-  text-align: center;
-  border-radius: 9999px;
-  border-style: none;
-  outline: none;
 `;
