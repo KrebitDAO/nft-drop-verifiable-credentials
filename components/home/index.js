@@ -2,21 +2,13 @@ import { useEffect, useState } from 'react';
 
 import { Wrapper } from './styles';
 
-const NFT_IMAGES = [
-  '/nfts/1.jpeg',
-  '/nfts/2.jpeg',
-  '/nfts/3.jpeg',
-  '/nfts/4.jpeg',
-  '/nfts/5.jpeg',
-  '/nfts/6.jpeg',
-  '/nfts/7.jpeg',
-  '/nfts/8.jpeg',
-  '/nfts/9.jpeg',
-  '/nfts/10.jpeg',
-  '/nfts/11.jpeg',
-  '/nfts/12.jpeg',
-  '/nfts/13.jpeg',
-];
+const { NEXT_PUBLIC_NFT_BASE_URI } = process.env;
+const { NEXT_PUBLIC_IPFS_GATEWAY } = process.env;
+const { NEXT_PUBLIC_NFT_SUPPLY } = process.env;
+
+const NFT_IMAGES = [...Array(Number(NEXT_PUBLIC_NFT_SUPPLY) + 1).keys()].slice(
+  1
+);
 const DELAY = 2000;
 
 export const Home = props => {
@@ -58,15 +50,15 @@ export const Home = props => {
   }, []);
 
   return (
-    <Wrapper currentNFT={NFT_IMAGES[currentNFTImagePosition]}>
+    <Wrapper
+      currentNFT={`${NEXT_PUBLIC_IPFS_GATEWAY}/ipfs/${NEXT_PUBLIC_NFT_BASE_URI}/${NFT_IMAGES[currentNFTImagePosition]}.jpeg`}
+    >
       <div className="container">
         <div className="content">
-          <h1 className="content-title">Colored Shape NFTs</h1>
+          <h1 className="content-title">Rare Buddies NFTs</h1>
           <p className="content-description">
-            Mint a colored shape from thirdweb's colored shape NFT Collection on
-            the Polygon Mumbai Testnet for free! Learn more about thirdweb's NFT
-            Drop contract here:
-            https://portal.thirdweb.com/pre-built-contracts/nft-drop
+            An exclusive NFT collection of really unique hand-drawn buddies.
+            Made by fuano.eth. Just art, no promises ❤️
           </p>
         </div>
         <div className="nfts">

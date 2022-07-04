@@ -1,11 +1,12 @@
 import { Core } from '@self.id/core';
 import { EthereumAuthProvider, SelfID, WebClient } from '@self.id/web';
 
+const { NEXT_PUBLIC_CERAMIC_URL } = process.env;
 const { NEXT_PUBLIC_CERAMIC_NETWORK } = process.env;
 
 export const webClient = async props => {
   const {
-    ceramicNetwork = NEXT_PUBLIC_CERAMIC_NETWORK || '',
+    ceramicNetwork = NEXT_PUBLIC_CERAMIC_URL || '',
     connectNetwork = NEXT_PUBLIC_CERAMIC_NETWORK || '',
   } = props;
   const ethereum = window.ethereum;

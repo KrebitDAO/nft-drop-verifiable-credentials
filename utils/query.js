@@ -1,6 +1,6 @@
 import { createClient } from '@urql/core';
 
-const { NEXT_PUBLIC_GRAPH_URI } = process.env;
+const { NEXT_PUBLIC_GRAPH_URL } = process.env;
 
 const verifiableCredentials = /* GraphQL */ `
   query VerifiableCredentials(
@@ -23,7 +23,7 @@ const verifiableCredentials = /* GraphQL */ `
 `;
 
 const subgraph = createClient({
-  url: NEXT_PUBLIC_GRAPH_URI,
+  url: NEXT_PUBLIC_GRAPH_URL,
 });
 
 export const getVerifiableCredentials = async props => {
