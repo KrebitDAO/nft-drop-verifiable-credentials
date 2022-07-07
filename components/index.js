@@ -1,4 +1,4 @@
 import { Home } from './home';
-import { NFTs } from './nfts';
+import { RareBuddies } from './rareBuddies';
 
-export { Home, NFTs };
+export { Home, RareBuddies };

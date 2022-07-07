@@ -1,9 +1,9 @@
 import { useContext, useState } from 'react';
+import Link from 'next/link';
 
 import { Wrapper } from './styles';
 import { KrebitContext } from '../../context';
 import { Button } from '../button';
-import Link from 'next/link';
 
 export const NavBar = () => {
   const { connectCeramic, authStatus, profile } = useContext(KrebitContext);
@@ -31,8 +31,8 @@ export const NavBar = () => {
                 <Link href="/">
                   <a className="connect-text">Home</a>
                 </Link>
-                <Link href="/nfts">
-                  <a className="connect-text">NFTs</a>
+                <Link href="/rare-buddies">
+                  <a className="connect-text">Rare Buddies</a>
                 </Link>
                 <a className="connect-text">{profile?.name || 'Anonymous'}</a>
               </div>
@@ -41,14 +41,16 @@ export const NavBar = () => {
               <Link href="/">
                 <a className="connect-text">Home</a>
               </Link>
-              <Link href="/nfts">
-                <a className="connect-text">NFTs</a>
+              <Link href="/rare-buddies">
+                <a className="connect-text">Rare Buddies</a>
               </Link>
               <a className="connect-text">{profile?.name || 'Anonymous'}</a>
             </div>
           </>
         ) : (
-          <Button text="Connect" onClick={() => connectCeramic()} />
+          <div className="connect-button">
+            <Button text="Connect" onClick={() => connectCeramic()} />
+          </div>
         )}
       </div>
     </Wrapper>

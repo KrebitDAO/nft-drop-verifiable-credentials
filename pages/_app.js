@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
-import { providers } from 'ethers';
+import { ethers, providers } from 'ethers';
 
 import { globalStyles } from '../global-styles';
 import { getRecord, webClient } from '../utils';
 import { KrebitContext } from '../context';
 import { NavBar } from '../components/navbar';
+
+import krbNFT from '../schemas/KRBCredentialNFT.json' assert { type: 'json' };
+
+const { NEXT_PUBLIC_NETWORK } = process.env;
 
 const App = ({ Component, pageProps }) => {
   const [status, setStatus] = useState('idle');
@@ -67,6 +71,28 @@ const App = ({ Component, pageProps }) => {
     }
   };
 
+  const getNFTContract = () => {
+    if (!window.ethereum) return;
+
+    try {
+      const provider = new providers.Web3Provider(window.ethereum);
+      const wallet = provider.getSigner();
+
+      const nftContract = new ethers.Contract(
+        krbNFT[NEXT_PUBLIC_NETWORK].address,
+        krbNFT.abi,
+        wallet
+      );
+
+      return {
+        wallet,
+        nftContract,
+      };
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <>
       {globalStyles}
@@ -78,6 +104,7 @@ const App = ({ Component, pageProps }) => {
           connect,
           connectCeramic,
           getProfile,
+          getNFTContract,
         }}
       >
         <NavBar />

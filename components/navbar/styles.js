@@ -4,25 +4,25 @@ import styled from '@emotion/styled';
 export const Wrapper = styled.nav`
   ${props => css`
     padding: 0 20px;
-    height: 50px;
+    height: 60px;
     width: 100%;
     display: grid;
     justify-content: space-between;
     align-items: center;
-    grid-template-columns: 87px ${props.authStatus === 'resolved'
+    grid-template-columns: 100px ${props.authStatus === 'resolved'
         ? '48px'
         : '150px'};
 
     @media (min-width: 1024px) {
       padding: 0 40px;
       height: 80px;
-      grid-template-columns: 100px auto;
+      grid-template-columns: 200px 250px;
     }
 
     .logo {
       width: 100%;
-      height: 35px;
-      background-image: url('/krebit.png');
+      height: 45px;
+      background-image: url('/krebit-logo.svg');
       background-position: center;
       background-repeat: no-repeat;
       background-size: contain;
@@ -80,6 +80,15 @@ export const Wrapper = styled.nav`
           padding: 0;
           color: white;
           cursor: pointer;
+        }
+      }
+
+      .connect-button {
+        width: 100%;
+        height: 40px;
+
+        @media (min-width: 1024px) {
+          height: 50px;
         }
       }
     }
