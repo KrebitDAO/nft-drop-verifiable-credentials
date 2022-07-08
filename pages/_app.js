@@ -56,6 +56,7 @@ const App = ({ Component, pageProps }) => {
     if (!window.ethereum) return;
 
     const provider = new providers.Web3Provider(window.ethereum);
+    await connect();
     const accounts = await provider.listAccounts();
 
     if (!accounts.length) return;
@@ -108,6 +109,7 @@ const App = ({ Component, pageProps }) => {
         }}
       >
         <NavBar />
+        <div id="modal"></div>
         <Component {...pageProps} />
       </KrebitContext.Provider>
     </>

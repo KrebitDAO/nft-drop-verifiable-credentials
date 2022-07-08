@@ -16,7 +16,7 @@ export const Wrapper = styled.nav`
     @media (min-width: 1024px) {
       padding: 0 40px;
       height: 80px;
-      grid-template-columns: 200px 250px;
+      grid-template-columns: 200px auto;
     }
 
     .logo {
@@ -88,6 +88,7 @@ export const Wrapper = styled.nav`
         height: 40px;
 
         @media (min-width: 1024px) {
+          width: 250px;
           height: 50px;
         }
       }

@@ -13,11 +13,36 @@ const verifiableCredentials = /* GraphQL */ `
       orderDirection: $orderDirection
       where: $where
     ) {
+      _context
+      _type
       claimId
-      credentialSubject {
-        _type
-        value
+      id
+      credentialStatus
+      issuer {
+        id
+        ethereumAddress
       }
+      credentialSubject {
+        id
+        ethereumAddress
+        _type
+        typeSchema
+        value
+        encrypted
+        trust
+        stake
+        nbf
+        exp
+      }
+      credentialSchema {
+        id
+        _type
+      }
+      issuanceDate
+      expirationDate
+      transaction
+      reason
+      disputedBy
     }
   }
 `;

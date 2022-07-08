@@ -21,7 +21,6 @@ export const RareBuddies = () => {
     if (!window) return;
 
     const getCurrentNetwork = async () => {
-      await window.ethereum.enable();
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: `0x${Number(NEXT_PUBLIC_CHAIN_ID).toString(16)}` }],
@@ -93,10 +92,9 @@ export const RareBuddies = () => {
             {nft.owner ? (
               <p className="description">Owner: {nft.owner}</p>
             ) : (
-              <p className="description">{`Price: $${parseInt(
-                nft.price,
-                10
-              ).toLocaleString('en-US')}`}</p>
+              <p className="description">
+                Price: {parseInt(nft.price, 10).toLocaleString('en-US')}
+              </p>
             )}
             <div className="button">
               <Button
