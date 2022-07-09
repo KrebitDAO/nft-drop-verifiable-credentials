@@ -14,6 +14,7 @@ const App = ({ Component, pageProps }) => {
   const [status, setStatus] = useState('idle');
   const [profile, setProfile] = useState({});
   const [selfId, setSelfId] = useState(null);
+  const [isConnectionReady, setConnectionReady] = useState(false);
 
   useEffect(() => {
     getProfile();
@@ -24,6 +25,7 @@ const App = ({ Component, pageProps }) => {
 
     const provider = new providers.Web3Provider(window.ethereum);
     await provider._ready();
+    setConnectionReady(true);
   };
 
   const connectCeramic = async () => {
@@ -103,6 +105,7 @@ const App = ({ Component, pageProps }) => {
           profile,
           selfId,
           connect,
+          isConnectionReady,
           connectCeramic,
           getProfile,
           getNFTContract,

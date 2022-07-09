@@ -12,7 +12,7 @@ const { NEXT_PUBLIC_IPFS_GATEWAY } = process.env;
 const { NEXT_PUBLIC_NFT_SUPPLY } = process.env;
 
 export const RareBuddies = () => {
-  const { getNFTContract } = useContext(KrebitContext);
+  const { getNFTContract, isConnectionReady } = useContext(KrebitContext);
   const [currentNetworkChainId, setCurrentNetworkChainId] = useState();
   const [nfts, setNfts] = useState([]);
   const router = useRouter();
@@ -34,6 +34,7 @@ export const RareBuddies = () => {
   useEffect(() => {
     if (!window) return;
     if (currentNetworkChainId !== NEXT_PUBLIC_CHAIN_ID) return;
+    if (!isConnectionReady) return;
 
     const getNFTs = async () => {
       const { nftContract } = getNFTContract();
@@ -76,11 +77,13 @@ export const RareBuddies = () => {
     };
 
     getNFTs();
-  }, [currentNetworkChainId]);
+  }, [currentNetworkChainId, isConnectionReady]);
 
   const handlePushNFTView = tokenId => {
     router.push(`/rare-buddies/${tokenId}`);
   };
+
+  if (!isConnectionReady) return;
 
   return (
     <Wrapper>
