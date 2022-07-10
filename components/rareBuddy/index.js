@@ -1,7 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { ethers } from 'ethers';
-import { getEIP712Credential } from '@krebitdao/eip712-vc';
 
 import { Wrapper } from './styles';
 import { Button } from '../button';
@@ -26,7 +25,9 @@ export const RareBuddy = () => {
   } = useContext(KrebitContext);
   const [currentNetworkChainId, setCurrentNetworkChainId] = useState();
   const [nft, setNft] = useState({});
-  const [currentPrice, setCurrentPrice] = useState(0);
+  const [currentPrice, setCurrentPrice] = useState('');
+  const [credentialType, setCredentialType] = useState('');
+  const [credentialValue, setCredentialValue] = useState('');
   const [currentErrorStatus, setCurrentErrorStatus] = useState('idle');
   const [status, setStatus] = useState('idle');
   const { query } = useRouter();
@@ -55,11 +56,20 @@ export const RareBuddy = () => {
     const getCurrentPrice = async () => {
       const { nftContract } = getNFTContract();
       const mintPrice = await nftContract.price();
-      const currentMintPrice = ethers.utils.formatUnits(mintPrice, 10);
+      const currentMintPrice = ethers.utils.formatUnits(mintPrice, 18);
       setCurrentPrice(currentMintPrice);
     };
 
+    const getRequiredCredential = async () => {
+      const { nftContract } = getNFTContract();
+      const credentialType = await nftContract.requiredCredentialType();
+      const credentialValue = await nftContract.requiredCredentialValue();
+      setCredentialType(credentialType);
+      setCredentialValue(credentialValue);
+    };
+
     getCurrentPrice();
+    getRequiredCredential();
   }, [currentNetworkChainId, isConnectionReady]);
 
   useEffect(() => {
@@ -91,6 +101,8 @@ export const RareBuddy = () => {
             ''
           )}`,
           price: currentPrice,
+          credentialType,
+          credentialValue,
           tokenId: currentTokenId,
         });
         setStatus('resolved');
@@ -118,24 +130,51 @@ export const RareBuddy = () => {
         where: {
           credentialSubjectDID: profile.currentDID,
           credentialStatus: 'Issued',
+          _type: `["VerifiableCredential","${credentialType}"]`,
         },
       });
-      const credential = {
-        ...verifiableCredentials[0],
-        id: verifiableCredentials[0].claimId,
-        type: JSON.parse(verifiableCredentials[0]._type),
-        context: JSON.parse(verifiableCredentials[0]._context),
-      };
 
-      // When the user needs to register some credentials in credit, show this message
-      if (credential) {
+      // When the user needs to register some credentials in Krebit, show this message
+      if (verifiableCredentials.length == 0) {
         setCurrentErrorStatus('MISSING_CREDENTIALS');
         return;
       }
 
-      const eip712credential = getEIP712Credential(credential);
+      //TODO check that verifiableCredentials[0].credentialSubject contains ${credentialValue}
+
+      // Only two mayor changes from the subgraph response:
+      const eip712credential2 = {
+        _context: verifiableCredentials[0]._context,
+        _type: verifiableCredentials[0]._type,
+        id: verifiableCredentials[0].claimId, // this
+        issuer: verifiableCredentials[0].issuer,
+        credentialSubject: {
+          ...verifiableCredentials[0].credentialSubject,
+          id: profile.currentDID, // and this
+        },
+        credentialSchema: verifiableCredentials[0].credentialSchema,
+        issuanceDate: verifiableCredentials[0].issuanceDate,
+        expirationDate: verifiableCredentials[0].expirationDate,
+      };
+
+      const eip712credential = {
+        ...verifiableCredentials[0],
+        id: verifiableCredentials[0].claimId, // this
+        credentialSubject: {
+          ...verifiableCredentials[0].credentialSubject,
+          id: profile.currentDID, // and this
+        },
+      };
+
       const currentAddress = await wallet.getAddress();
       const currentTokenId = parseInt(query.tokenId);
+
+      /*
+      console.log('credential: ', eip712credential);
+      console.log('currentAddress: ', currentAddress);
+      console.log('currentTokenId: ', currentTokenId);
+      console.log('currentPrice: ', currentPrice);
+      */
 
       const tx = await nftContract.mintWithCredential(
         currentAddress,
@@ -187,8 +226,8 @@ export const RareBuddy = () => {
     <>
       {currentErrorStatus === 'NOT_LOGGED_IN' && (
         <CredentialModal
-          title="You're not log in"
-          description="You should connect you're wallet to continue"
+          title="You're not logged in"
+          description="You should connect your wallet to continue"
           buttonText="Connect"
           onClose={handleCloseCredentialModal}
           onClick={handleConnectCredentialModal}
@@ -196,7 +235,9 @@ export const RareBuddy = () => {
       )}
       {currentErrorStatus === 'MISSING_CREDENTIALS' && (
         <CredentialModal
-          title="Missing credentials"
+          title={
+            'Missing credential: ' + credentialType + ' : ' + credentialValue
+          }
           description="Please go to Krebit DApp to register your credentials"
           buttonText="Go to Krebit DApp"
           onClose={handleCloseCredentialModal}
@@ -217,9 +258,16 @@ export const RareBuddy = () => {
           <div className="container-image"></div>
           <div className="container-content">
             <p className="container-title">{nft.name}</p>
+            <p className="container-description">
+              {'Required Krebit.id credential: {' +
+                credentialType +
+                ' : ' +
+                credentialValue +
+                '}'}
+            </p>
             <p className="container-description">{nft.description}</p>
             <p className="container-description">
-              Price: {parseInt(nft.price, 10).toLocaleString('en-US')}
+              Price: {nft.price} {krbNFT[NEXT_PUBLIC_NETWORK].token}
             </p>
             {nft.owner ? (
               <>

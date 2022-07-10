@@ -31,6 +31,7 @@ const verifiableCredentials = /* GraphQL */ `
         encrypted
         trust
         stake
+        price
         nbf
         exp
       }
