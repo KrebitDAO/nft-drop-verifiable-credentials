@@ -73,6 +73,12 @@ export const Wrapper = styled.div`
           }
         }
 
+        .container-description-error {
+          color: red;
+          opacity: 0.8;
+          font-weight: 400;
+        }
+
         .container-button {
           width: 200px;
           height: 45px;

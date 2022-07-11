@@ -250,7 +250,7 @@ export const RareBuddy = () => {
                     <p className="container-subtitle">
                       You're missing some credentials to mint this NFT
                     </p>
-                    <p className="container-description">
+                    <p className="container-description container-description-error">
                       {nft.credentialType} is not equal to {nft.credentialValue}
                     </p>
                     <div className="container-button">
