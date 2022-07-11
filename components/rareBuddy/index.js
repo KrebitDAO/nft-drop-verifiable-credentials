@@ -26,9 +26,6 @@ export const RareBuddy = () => {
   } = useContext(KrebitContext);
   const [currentNetworkChainId, setCurrentNetworkChainId] = useState();
   const [nft, setNft] = useState({});
-  const [currentPrice, setCurrentPrice] = useState('');
-  const [credentialType, setCredentialType] = useState('');
-  const [credentialValue, setCredentialValue] = useState('');
   const [currentErrorStatus, setCurrentErrorStatus] = useState('idle');
   const [status, setStatus] = useState('idle');
   const [mintStatus, setMintStatus] = useState('idle');
@@ -55,27 +52,6 @@ export const RareBuddy = () => {
     if (currentNetworkChainId !== NEXT_PUBLIC_CHAIN_ID) return;
     if (!isConnectionReady) return;
 
-    const getCurrentInfo = async () => {
-      const { nftContract } = getNFTContract();
-
-      const mintPrice = await nftContract.price();
-      const currentMintPrice = ethers.utils.formatUnits(mintPrice, 18);
-      const credentialType = await nftContract.requiredCredentialType();
-      const credentialValue = await nftContract.requiredCredentialValue();
-
-      setCurrentPrice(currentMintPrice);
-      setCredentialType(credentialType);
-      setCredentialValue(credentialValue);
-    };
-
-    getCurrentInfo();
-  }, [currentNetworkChainId, isConnectionReady]);
-
-  useEffect(() => {
-    if (!window) return;
-    if (currentNetworkChainId !== NEXT_PUBLIC_CHAIN_ID) return;
-    if (!isConnectionReady) return;
-
     const getNFTs = async () => {
       const currentTokenId = parseInt(query.tokenId);
       setStatus('pending');
@@ -93,16 +69,31 @@ export const RareBuddy = () => {
           metadata['owner'] = undefined;
         }
 
+        const mintPrice = await nftContract.price();
+        const currentMintPrice = ethers.utils.formatUnits(mintPrice, 18);
+        const credentialType = await nftContract.requiredCredentialType();
+        const credentialValue = await nftContract.requiredCredentialValue();
+        const verifiableCredentials = await getVerifiableCredentials({
+          orderBy: 'issuanceDate',
+          orderDirection: 'desc',
+          where: {
+            credentialSubjectDID: profile.currentDID,
+            credentialStatus: 'Issued',
+            _type: `["VerifiableCredential","${credentialType}"]`,
+          },
+        });
+
         setNft({
           ...metadata,
           image: `${NEXT_PUBLIC_IPFS_GATEWAY}/ipfs/${metadata.image.replace(
             'ipfs://',
             ''
           )}`,
-          price: currentPrice,
+          price: currentMintPrice,
           credentialType,
           credentialValue,
           tokenId: currentTokenId,
+          verifiableCredentials,
         });
         setStatus('resolved');
       } catch (error) {
@@ -115,9 +106,7 @@ export const RareBuddy = () => {
   }, [
     currentNetworkChainId,
     query.tokenId,
-    currentPrice,
-    credentialType,
-    credentialValue,
+    profile.currentDID,
     isConnectionReady,
   ]);
 
@@ -130,32 +119,19 @@ export const RareBuddy = () => {
       return;
     }
 
+    if (nft.verifiableCredentials.length == 0) {
+      throw new Error('Missing credentials');
+    }
+
     try {
       const { nftContract, wallet } = getNFTContract();
 
-      const verifiableCredentials = await getVerifiableCredentials({
-        orderBy: 'issuanceDate',
-        orderDirection: 'desc',
-        where: {
-          credentialSubjectDID: profile.currentDID,
-          credentialStatus: 'Issued',
-          _type: `["VerifiableCredential","${credentialType}"]`,
-        },
-      });
-
-      // When the user needs to register some credentials in Krebit, show this message
-      if (verifiableCredentials.length == 0) {
-        setCurrentErrorStatus('MISSING_CREDENTIALS');
-        setMintStatus('resolved');
-        return;
-      }
-
       // TODO: Check that verifiableCredentials[0].credentialSubject contains ${credentialValue}
       const eip712credential = {
-        ...verifiableCredentials[0],
-        id: verifiableCredentials[0].claimId,
+        ...nft.verifiableCredentials[0],
+        id: nft.verifiableCredentials[0].claimId,
         credentialSubject: {
-          ...verifiableCredentials[0].credentialSubject,
+          ...nft.verifiableCredentials[0].credentialSubject,
           id: profile.currentDID,
         },
       };
@@ -167,7 +143,7 @@ export const RareBuddy = () => {
         currentTokenId,
         eip712credential,
         {
-          value: ethers.utils.parseEther(currentPrice).toString(),
+          value: ethers.utils.parseEther(nft.price).toString(),
         }
       );
 
@@ -214,15 +190,6 @@ export const RareBuddy = () => {
           onClose={handleCloseCredentialModal}
           onClick={handleConnectCredentialModal}
           isButtonLoading={authStatus === 'pending'}
-        />
-      )}
-      {currentErrorStatus === 'MISSING_CREDENTIALS' && (
-        <CredentialModal
-          title={`Missing ${credentialType} credential`}
-          description={`The accepted value is ${credentialValue}. Please go to Krebit DApp to register your credentials`}
-          buttonText="Go to Krebit DApp"
-          onClose={handleCloseCredentialModal}
-          onClick={() => handlePushRouter('webpage')}
         />
       )}
       {currentErrorStatus === 'SUCCESS_MINT' && (
@@ -276,13 +243,33 @@ export const RareBuddy = () => {
                 </div>
               </>
             ) : (
-              <div className="container-button">
-                <Button
-                  onClick={mintNft}
-                  text="Mint"
-                  isLoading={mintStatus === 'pending'}
-                />
-              </div>
+              <>
+                {nft?.verifiableCredentials?.length === 0 &&
+                authStatus === 'resolved' ? (
+                  <>
+                    <p className="container-subtitle">
+                      You're missing some credentials to mint this NFT
+                    </p>
+                    <p className="container-description">
+                      {nft.credentialType} is not equal to {nft.credentialValue}
+                    </p>
+                    <div className="container-button">
+                      <Button
+                        onClick={() => handlePushRouter('webpage')}
+                        text="Go to Krebit DApp"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="container-button">
+                    <Button
+                      onClick={mintNft}
+                      text="Mint"
+                      isLoading={mintStatus === 'pending'}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

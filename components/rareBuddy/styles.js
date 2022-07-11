@@ -46,6 +46,18 @@ export const Wrapper = styled.div`
           }
         }
 
+        .container-subtitle {
+          color: white;
+          font-weight: 600;
+          font-size: 20px;
+          margin: 0;
+          margin-top: 10px;
+
+          @media (min-width: 1024px) {
+            margin-top: 20px;
+          }
+        }
+
         .container-description {
           font-size: 14px;
           color: white;
