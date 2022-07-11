@@ -8,6 +8,7 @@ import { Button } from '../button';
 export const NavBar = () => {
   const { connectCeramic, authStatus, profile } = useContext(KrebitContext);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const isConnectionLoading = authStatus === 'pending';
 
   const handleIsMenuOpen = () => {
     setIsMenuOpen(prevState => !prevState);
@@ -49,7 +50,11 @@ export const NavBar = () => {
           </>
         ) : (
           <div className="connect-button">
-            <Button text="Connect" onClick={() => connectCeramic()} />
+            <Button
+              text="Connect"
+              onClick={() => connectCeramic()}
+              isLoading={isConnectionLoading}
+            />
           </div>
         )}
       </div>

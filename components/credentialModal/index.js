@@ -3,7 +3,14 @@ import { Portal } from '../portal';
 import { Button } from '../button';
 
 export const CredentialModal = props => {
-  const { title, description, buttonText, onClick, onClose } = props;
+  const {
+    title,
+    description,
+    buttonText,
+    onClick,
+    onClose,
+    isButtonLoading = false,
+  } = props;
 
   return (
     <Portal>
@@ -24,7 +31,11 @@ export const CredentialModal = props => {
             <p className="credential-modal-title">{title}</p>
             <p className="credential-modal-description">{description}</p>
             <div className="credential-modal-button">
-              <Button onClick={onClick} text={buttonText} />
+              <Button
+                onClick={onClick}
+                text={buttonText}
+                isLoading={isButtonLoading}
+              />
             </div>
           </div>
         </div>

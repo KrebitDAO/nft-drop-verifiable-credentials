@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { ethers } from 'ethers';
-import { getEIP712Credential } from '@krebitdao/eip712-vc';
 
 import { Wrapper } from './styles';
 import { Button } from '../button';
@@ -26,9 +26,12 @@ export const RareBuddy = () => {
   } = useContext(KrebitContext);
   const [currentNetworkChainId, setCurrentNetworkChainId] = useState();
   const [nft, setNft] = useState({});
-  const [currentPrice, setCurrentPrice] = useState(0);
+  const [currentPrice, setCurrentPrice] = useState('');
+  const [credentialType, setCredentialType] = useState('');
+  const [credentialValue, setCredentialValue] = useState('');
   const [currentErrorStatus, setCurrentErrorStatus] = useState('idle');
   const [status, setStatus] = useState('idle');
+  const [mintStatus, setMintStatus] = useState('idle');
   const { query } = useRouter();
   const isLoading =
     status === 'idle' || status === 'pending' || !isConnectionReady;
@@ -52,14 +55,20 @@ export const RareBuddy = () => {
     if (currentNetworkChainId !== NEXT_PUBLIC_CHAIN_ID) return;
     if (!isConnectionReady) return;
 
-    const getCurrentPrice = async () => {
+    const getCurrentInfo = async () => {
       const { nftContract } = getNFTContract();
+
       const mintPrice = await nftContract.price();
-      const currentMintPrice = ethers.utils.formatUnits(mintPrice, 10);
+      const currentMintPrice = ethers.utils.formatUnits(mintPrice, 18);
+      const credentialType = await nftContract.requiredCredentialType();
+      const credentialValue = await nftContract.requiredCredentialValue();
+
       setCurrentPrice(currentMintPrice);
+      setCredentialType(credentialType);
+      setCredentialValue(credentialValue);
     };
 
-    getCurrentPrice();
+    getCurrentInfo();
   }, [currentNetworkChainId, isConnectionReady]);
 
   useEffect(() => {
@@ -91,6 +100,8 @@ export const RareBuddy = () => {
             ''
           )}`,
           price: currentPrice,
+          credentialType,
+          credentialValue,
           tokenId: currentTokenId,
         });
         setStatus('resolved');
@@ -101,11 +112,21 @@ export const RareBuddy = () => {
     };
 
     getNFTs();
-  }, [currentNetworkChainId, query.tokenId, currentPrice, isConnectionReady]);
+  }, [
+    currentNetworkChainId,
+    query.tokenId,
+    currentPrice,
+    credentialType,
+    credentialValue,
+    isConnectionReady,
+  ]);
 
   const mintNft = async () => {
+    setMintStatus('pending');
+
     if (authStatus !== 'resolved' || !profile.currentDID) {
       setCurrentErrorStatus('NOT_LOGGED_IN');
+      setMintStatus('resolved');
       return;
     }
 
@@ -118,22 +139,26 @@ export const RareBuddy = () => {
         where: {
           credentialSubjectDID: profile.currentDID,
           credentialStatus: 'Issued',
+          _type: `["VerifiableCredential","${credentialType}"]`,
         },
       });
-      const credential = {
-        ...verifiableCredentials[0],
-        id: verifiableCredentials[0].claimId,
-        type: JSON.parse(verifiableCredentials[0]._type),
-        context: JSON.parse(verifiableCredentials[0]._context),
-      };
 
-      // When the user needs to register some credentials in credit, show this message
-      if (credential) {
+      // When the user needs to register some credentials in Krebit, show this message
+      if (verifiableCredentials.length == 0) {
         setCurrentErrorStatus('MISSING_CREDENTIALS');
+        setMintStatus('resolved');
         return;
       }
 
-      const eip712credential = getEIP712Credential(credential);
+      // TODO: Check that verifiableCredentials[0].credentialSubject contains ${credentialValue}
+      const eip712credential = {
+        ...verifiableCredentials[0],
+        id: verifiableCredentials[0].claimId,
+        credentialSubject: {
+          ...verifiableCredentials[0].credentialSubject,
+          id: profile.currentDID,
+        },
+      };
       const currentAddress = await wallet.getAddress();
       const currentTokenId = parseInt(query.tokenId);
 
@@ -149,10 +174,12 @@ export const RareBuddy = () => {
       // When the user successfully mint the NFT, show this message
       if (tx) {
         setCurrentErrorStatus('SUCCESS_MINT');
+        setMintStatus('resolved');
       }
       console.log('Transaction minting token:', tx);
     } catch (error) {
       console.error(error);
+      setMintStatus('rejected');
     }
   };
 
@@ -166,18 +193,12 @@ export const RareBuddy = () => {
   };
 
   const handlePushRouter = type => {
-    if (type === 'krebit') {
+    if (type === 'webpage') {
       window.open('https://testnet.krebit.id/', '_blank');
     }
 
-    if (type === 'opensea') {
-      const contractAddress = krbNFT[NEXT_PUBLIC_NETWORK].address;
-      const currentTokenId = parseInt(query.tokenId);
-
-      window.open(
-        `https://testnets.opensea.io/assets/${NEXT_PUBLIC_NETWORK}/${contractAddress}/${currentTokenId}`,
-        '_blank'
-      );
+    if (type === 'reload') {
+      window.location.reload();
     }
   };
 
@@ -187,29 +208,30 @@ export const RareBuddy = () => {
     <>
       {currentErrorStatus === 'NOT_LOGGED_IN' && (
         <CredentialModal
-          title="You're not log in"
-          description="You should connect you're wallet to continue"
+          title="You're not logged in"
+          description="You should connect your wallet to continue"
           buttonText="Connect"
           onClose={handleCloseCredentialModal}
           onClick={handleConnectCredentialModal}
+          isButtonLoading={authStatus === 'pending'}
         />
       )}
       {currentErrorStatus === 'MISSING_CREDENTIALS' && (
         <CredentialModal
-          title="Missing credentials"
-          description="Please go to Krebit DApp to register your credentials"
+          title={`Missing ${credentialType} credential`}
+          description={`The accepted value is ${credentialValue}. Please go to Krebit DApp to register your credentials`}
           buttonText="Go to Krebit DApp"
           onClose={handleCloseCredentialModal}
-          onClick={() => handlePushRouter('krebit')}
+          onClick={() => handlePushRouter('webpage')}
         />
       )}
       {currentErrorStatus === 'SUCCESS_MINT' && (
         <CredentialModal
           title="Congratulations!"
           description="Now you have this NFT assigned to your wallet"
-          buttonText="See it on OpenSea"
+          buttonText="Thank you!"
           onClose={handleCloseCredentialModal}
-          onClick={() => handlePushRouter('opensea')}
+          onClick={() => handlePushRouter('reload')}
         />
       )}
       <Wrapper currentImage={nft.image}>
@@ -219,21 +241,47 @@ export const RareBuddy = () => {
             <p className="container-title">{nft.name}</p>
             <p className="container-description">{nft.description}</p>
             <p className="container-description">
-              Price: {parseInt(nft.price, 10).toLocaleString('en-US')}
+              Price: {nft.price} {krbNFT[NEXT_PUBLIC_NETWORK].token}
             </p>
             {nft.owner ? (
               <>
                 <p className="container-description">Owner: {nft.owner}</p>
-                <div className="container-button">
-                  <Button
-                    onClick={() => handlePushRouter('opensea')}
-                    text="See it on OpenSea"
-                  />
+                <div className="container-networks">
+                  <Link
+                    href={`https://${
+                      NEXT_PUBLIC_NETWORK === 'rinkeby' ? 'testnets.' : ''
+                    }opensea.io/assets/${NEXT_PUBLIC_NETWORK}/${
+                      krbNFT[NEXT_PUBLIC_NETWORK].address
+                    }/${query.tokenId}`}
+                    rel="noopener noreferrer"
+                  >
+                    <a target="_blank">
+                      <img src="/opensea.svg" width={20} height={20} /> OpenSea
+                    </a>
+                  </Link>
+                  <Link
+                    href={`https://${
+                      NEXT_PUBLIC_NETWORK === 'rinkeby' ? 'testnet.' : ''
+                    }rarible.com/token/${krbNFT[NEXT_PUBLIC_NETWORK].address}:${
+                      query.tokenId
+                    }`}
+                    rel="noopener noreferrer"
+                  >
+                    <a target="_blank">
+                      {' '}
+                      <img src="/rarible.png" width={20} height={20} />
+                      Rarible
+                    </a>
+                  </Link>
                 </div>
               </>
             ) : (
               <div className="container-button">
-                <Button onClick={mintNft} text="Mint" />
+                <Button
+                  onClick={mintNft}
+                  text="Mint"
+                  isLoading={mintStatus === 'pending'}
+                />
               </div>
             )}
           </div>

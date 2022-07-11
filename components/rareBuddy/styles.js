@@ -73,6 +73,25 @@ export const Wrapper = styled.div`
             margin-top: 20px;
           }
         }
+
+        .container-networks {
+          display: flex;
+          grid-gap: 10px;
+          margin-top: 20px;
+
+          & > a {
+            border: 1px solid #ffffff66;
+            padding: 10px;
+            background-color: white;
+            color: #1c1e21;
+            border-radius: 29px;
+            font-size: 14px;
+            font-weight: 400;
+            display: flex;
+            grid-gap: 5px;
+            align-items: center;
+          }
+        }
       }
     }
   `}

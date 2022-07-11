@@ -14,4 +14,9 @@ export const ButtonStyled = styled.button`
   border-style: none;
   outline: none;
   font-size: 16px;
+
+  &:disabled {
+    opacity: 0.8;
+    cursor: wait;
+  }
 `;

@@ -6,6 +6,9 @@ import { Card, Wrapper } from './styles';
 import { Button } from '../button';
 import { KrebitContext } from '../../context';
 
+import krbNFT from '../../schemas/KRBCredentialNFT.json' assert { type: 'json' };
+
+const { NEXT_PUBLIC_NETWORK } = process.env;
 const { NEXT_PUBLIC_CHAIN_ID } = process.env;
 const { NEXT_PUBLIC_NFT_METADATA_URI } = process.env;
 const { NEXT_PUBLIC_IPFS_GATEWAY } = process.env;
@@ -18,8 +21,7 @@ export const RareBuddies = () => {
   const router = useRouter();
 
   useEffect(() => {
-    if (!window) return;
-
+    if (!window || !window.ethereum) return;
     const getCurrentNetwork = async () => {
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
@@ -32,7 +34,7 @@ export const RareBuddies = () => {
   }, []);
 
   useEffect(() => {
-    if (!window) return;
+    if (!window || !window.ethereum) return;
     if (currentNetworkChainId !== NEXT_PUBLIC_CHAIN_ID) return;
     if (!isConnectionReady) return;
 
@@ -41,7 +43,7 @@ export const RareBuddies = () => {
 
       if (nftContract) {
         const mintPrice = await nftContract.price();
-        const currentMintPrice = ethers.utils.formatUnits(mintPrice, 10);
+        const currentMintPrice = ethers.utils.formatUnits(mintPrice, 18);
 
         const tokens = await Promise.all(
           [...Array(parseInt(NEXT_PUBLIC_NFT_SUPPLY, 10))].map(
@@ -96,7 +98,7 @@ export const RareBuddies = () => {
               <p className="description">Owner: {nft.owner}</p>
             ) : (
               <p className="description">
-                Price: {parseInt(nft.price, 10).toLocaleString('en-US')}
+                Price: {nft.price} {krbNFT[NEXT_PUBLIC_NETWORK].token}
               </p>
             )}
             <div className="button">

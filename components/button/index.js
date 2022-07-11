@@ -1,7 +1,15 @@
 import { ButtonStyled } from './styles';
 
 export const Button = props => {
-  const { text, onClick } = props;
+  const { text, onClick, isLoading = false } = props;
 
-  return <ButtonStyled onClick={onClick}>{text}</ButtonStyled>;
+  return (
+    <ButtonStyled
+      onClick={isLoading ? undefined : onClick}
+      isLoading={isLoading}
+      disabled={isLoading}
+    >
+      {isLoading ? 'Loading...' : text}
+    </ButtonStyled>
+  );
 };
